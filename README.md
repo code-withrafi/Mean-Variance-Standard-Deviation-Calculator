@@ -1,44 +1,56 @@
-import numpy as np
+import pandas as pd
 
-def calculate(numbers):
-    # Check if the input list contains exactly 9 numbers
-    if len(numbers) != 9:
-        raise ValueError("List must contain nine numbers.")
-    
-    # Convert the list of numbers into a 3x3 numpy array
-    matrix = np.array(numbers).reshape(3, 3)
-    
-    # Calculate the required statistics
-    mean_axis1 = matrix.mean(axis=1).tolist()  # Mean along rows
-    mean_axis2 = matrix.mean(axis=0).tolist()  # Mean along columns
-    mean_flat = matrix.mean().tolist()  # Mean for the entire flattened matrix
+def load_data():
+    df = pd.read_csv('adult.csv')
+    return df
 
-    variance_axis1 = matrix.var(axis=1).tolist()  # Variance along rows
-    variance_axis2 = matrix.var(axis=0).tolist()  # Variance along columns
-    variance_flat = matrix.var().tolist()  # Variance for the entire flattened matrix
+def race_count(df):
+    return df['race'].value_counts()
 
-    std_dev_axis1 = matrix.std(axis=1).tolist()  # Standard deviation along rows
-    std_dev_axis2 = matrix.std(axis=0).tolist()  # Standard deviation along columns
-    std_dev_flat = matrix.std().tolist()  # Standard deviation for the entire flattened matrix
+def average_age_men(df):
+    men = df[df['sex'] == 'Male']
+    return round(men['age'].mean(), 1)
 
-    max_axis1 = matrix.max(axis=1).tolist()  # Max along rows
-    max_axis2 = matrix.max(axis=0).tolist()  # Max along columns
-    max_flat = matrix.max().tolist()  # Max for the entire flattened matrix
+def percentage_bachelors(df):
+    bachelors = df[df['education'] == 'Bachelors']
+    return round((len(bachelors) / len(df)) * 100, 1)
 
-    min_axis1 = matrix.min(axis=1).tolist()  # Min along rows
-    min_axis2 = matrix.min(axis=0).tolist()  # Min along columns
-    min_flat = matrix.min().tolist()  # Min for the entire flattened matrix
+def percentage_advanced_education_high_salary(df):
+    advanced_education = df[df['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]
+    high_salary = advanced_education[advanced_education['salary'] == '>50K']
+    return round((len(high_salary) / len(advanced_education)) * 100, 1)
 
-    sum_axis1 = matrix.sum(axis=1).tolist()  # Sum along rows
-    sum_axis2 = matrix.sum(axis=0).tolist()  # Sum along columns
-    sum_flat = matrix.sum().tolist()  # Sum for the entire flattened matrix
+def percentage_no_advanced_education_high_salary(df):
+    no_advanced_education = df[~df['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]
+    high_salary = no_advanced_education[no_advanced_education['salary'] == '>50K']
+    return round((len(high_salary) / len(no_advanced_education)) * 100, 1)
 
-    # Return the results in the required dictionary format
-    return {
-        'mean': [mean_axis1, mean_axis2, mean_flat],
-        'variance': [variance_axis1, variance_axis2, variance_flat],
-        'standard deviation': [std_dev_axis1, std_dev_axis2, std_dev_flat],
-        'max': [max_axis1, max_axis2, max_flat],
-        'min': [min_axis1, min_axis2, min_flat],
-        'sum': [sum_axis1, sum_axis2, sum_flat]
-    }
+def min_work_hours(df):
+    return df['hours-per-week'].min()
+
+def percentage_min_work_hours_high_salary(df):
+    min_hours = df[df['hours-per-week'] == df['hours-per-week'].min()]
+    high_salary = min_hours[min_hours['salary'] == '>50K']
+    return round((len(high_salary) / len(min_hours)) * 100, 1)
+
+def highest_earning_country(df):
+    country_group = df.groupby('native-country').apply(lambda x: (x[x['salary'] == '>50K'].shape[0] / x.shape[0]) * 100)
+    highest_country = country_group.idxmax()
+    highest_percentage = country_group.max()
+    return highest_country, round(highest_percentage, 1)
+
+def popular_occupation_in_india(df):
+    india_high_salary = df[(df['native-country'] == 'India') & (df['salary'] == '>50K')]
+    return india_high_salary['occupation'].mode()[0]
+
+if __name__ == "__main__":
+    df = load_data()
+    print(race_count(df))
+    print(average_age_men(df))
+    print(percentage_bachelors(df))
+    print(percentage_advanced_education_high_salary(df))
+    print(percentage_no_advanced_education_high_salary(df))
+    print(min_work_hours(df))
+    print(percentage_min_work_hours_high_salary(df))
+    print(highest_earning_country(df))
+    print(popular_occupation_in_india(df))
